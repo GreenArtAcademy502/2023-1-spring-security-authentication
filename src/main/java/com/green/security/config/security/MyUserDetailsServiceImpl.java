@@ -23,7 +23,7 @@ public class MyUserDetailsServiceImpl implements UserDetailsService {
                 .uid(entity.getUid())
                 .iuser(entity.getIuser())
                 .upw(entity.getUpw())
-                .roles(Collections.singletonList("ROLE_" + entity.getRole()))
+                .roles(Collections.singletonList(entity.getRole()))
                 .build();
     }
 }

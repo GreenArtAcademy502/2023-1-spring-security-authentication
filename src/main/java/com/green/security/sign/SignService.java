@@ -58,7 +58,7 @@ public class SignService {
 
 
         log.info("[getSignInResult] SignInResultDto 객체 생성");
-        String token = JWT_PROVIDER.generateJwtToken(String.valueOf(user.getUid()), Collections.singletonList(user.getRole()));
+        String token = JWT_PROVIDER.generateJwtToken(String.valueOf(user.getIuser()), Collections.singletonList(user.getRole()));
         SignInResultDto dto = SignInResultDto.builder()
                                 .token(token)
                                 .build();

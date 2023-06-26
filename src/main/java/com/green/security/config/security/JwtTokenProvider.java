@@ -1,5 +1,6 @@
 package com.green.security.config.security;
 
+import com.green.security.config.security.model.MyUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -34,12 +35,12 @@ public class JwtTokenProvider {
     }
 
 
-    public String generateJwtToken(String uid, List<String> roles) {
+    public String generateJwtToken(String strIuser, List<String> roles) {
         LOGGER.info("JwtTokenProvider - generateJwtToken: 토큰 생성 시작");
         Date now = new Date();
 
         String token = Jwts.builder()
-                .setClaims(createClaims(uid, roles))
+                .setClaims(createClaims(strIuser, roles))
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + TOKEN_VALID_MS))
                 .signWith(KEY)
@@ -48,24 +49,30 @@ public class JwtTokenProvider {
         return token;
     }
 
-    private Claims createClaims(String uid, List<String> roles) {
-        Claims claims = Jwts.claims().setSubject(uid);
+    private Claims createClaims(String strIuser, List<String> roles) {
+        Claims claims = Jwts.claims().setSubject(strIuser);
         claims.put("roles", roles);
         return claims;
     }
 
     public Authentication getAuthentication (String token) {
         LOGGER.info("JwtTokenProvider - getAuthentication: 토큰 인증 정보 조회 시작");
-        UserDetails userDetails = SERVICE.loadUserByUsername(getUsername(token));
-
+        //UserDetails userDetails = SERVICE.loadUserByUsername(getUsername(token));
+        UserDetails userDetails = getUserDetailsFromToken(token);
         LOGGER.info("JwtTokenProvider - getAuthentication: 토큰 인증 정보 조회 완료, UserDetails UserName : {}"
                 , userDetails.getUsername());
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    private String getUsername(String token) {
-        return getClaims(token)
-                .getSubject();
+    private UserDetails getUserDetailsFromToken(String token) {
+        Claims claims = getClaims(token);
+        String strIuser = claims.getSubject();
+        List<String> roles = (List<String>)claims.get("roles");
+        return MyUserDetails
+                .builder()
+                .iuser(Long.valueOf(strIuser))
+                .roles(roles)
+                .build();
     }
 
     public String resolveToken(HttpServletRequest req, String type) {
