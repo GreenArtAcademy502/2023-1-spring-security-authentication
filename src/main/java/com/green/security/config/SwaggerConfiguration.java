@@ -14,7 +14,7 @@ public class SwaggerConfiguration {
     private final String JWT_TYPE;
     private final String HEADER_SCHEME_NAME;
 
-    public SwaggerConfiguration(@Value("${springboot.jwt.type}") String jwtType
+    public SwaggerConfiguration(@Value("${springboot.jwt.token-type}") String jwtType
             , @Value("${springboot.jwt.header-scheme-name}") String headerSchemeName) {
         this.JWT_TYPE = jwtType;
         this.HEADER_SCHEME_NAME = headerSchemeName;

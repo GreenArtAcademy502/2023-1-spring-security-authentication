@@ -37,6 +37,7 @@ public class SecurityConfiguration {
                                     , "/"
                                     , "/view/**"
                             ).permitAll()
+                            .requestMatchers(HttpMethod.GET, "/sign-api/refresh-token").permitAll()
                             .requestMatchers(HttpMethod.GET, "/product/**").permitAll()
                             .requestMatchers("**exception**").permitAll()
                             .requestMatchers("/todo-api").hasAnyRole("USER", "ADMIN")
@@ -60,7 +61,7 @@ public class SecurityConfiguration {
 //    public WebSecurityCustomizer webSecurityCustomizer() {
 //        //함수형 인터페이스 람다
 //        WebSecurityCustomizer lamda = (web) -> web.ignoring()
-//                    .requestMatchers("/swagger.html", "/swagger-ui/index.html", "/imgs/**", "/js/**", "/css/**", "/index.html");
+//                    .requestMatchers(HttpMethod.GET, "/sign-api/refresh-token");
 //        return lamda;
 //    }
 }
