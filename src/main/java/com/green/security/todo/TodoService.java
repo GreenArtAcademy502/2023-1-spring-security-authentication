@@ -13,6 +13,6 @@ public class TodoService {
     private final AuthenticationFacade facade;
 
     public void test() {
-        log.info("service-test : {}", facade.getLoginUserPk());
+        log.info("service-test-iuser : {}", facade.getLoginUserPk());
     }
 }
