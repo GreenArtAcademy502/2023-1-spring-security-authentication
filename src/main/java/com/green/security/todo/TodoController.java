@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.*;
 public class TodoController {
 
     @PostMapping
-    public int insTodo(@AuthenticationPrincipal MyUserDetails user, @RequestParam String ctnt) {
+    public int insTodo(@AuthenticationPrincipal MyUserDetails user
+            , @RequestParam String ctnt) {
         log.info("TodoController - insTodo: ctnt {}", ctnt);
         log.info("iuser {}", user.getIuser());
         return 1;

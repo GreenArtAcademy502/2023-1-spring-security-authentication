@@ -25,7 +25,8 @@
         (#{iuser}, #{ip}, #{accessToken}, #{refreshToken})
 
         ON DUPLICATE KEY UPDATE
-          access_token = #{accessToken}
+        ip = #{ip}
+        , access_token = #{accessToken}
         , refresh_token = #{refreshToken}
     </insert>
 
