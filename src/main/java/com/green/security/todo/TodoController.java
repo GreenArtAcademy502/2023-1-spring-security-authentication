@@ -23,4 +23,10 @@ public class TodoController {
         SERVICE.test();
         return 1;
     }
+
+    @GetMapping("/test")
+    public String getTest(@RequestParam Test test) {
+        log.info("test : {}", test);
+        return "test";
+    }
 }

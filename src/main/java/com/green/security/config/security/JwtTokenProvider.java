@@ -1,8 +1,8 @@
 package com.green.security.config.security;
 
+import com.green.security.config.RedisService;
 import com.green.security.config.security.model.MyUserDetails;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import java.security.Key;
+import java.security.SignatureException;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -25,18 +26,24 @@ public class JwtTokenProvider {
     public final Key REFRESH_KEY;
     public final String TOKEN_TYPE;
 
-    public final long ACCESS_TOKEN_VALID_MS = 3_600_000L; // 1000L * 60 * 60 -> 1시간
+    //public final long ACCESS_TOKEN_VALID_MS = 3_600_000L; // 1000L * 60 * 60 -> 1시간
+    public final long ACCESS_TOKEN_VALID_MS = 20_000L; // 1000L * 60 * 60 -> 1시간
     public final long REFRESH_TOKEN_VALID_MS = 1_296_000_000L; // 1000L * 60 * 60 * 24 * 15 -> 15일
 
+    private final RedisService redisService;
+
+    @Autowired
     public JwtTokenProvider(@Value("${springboot.jwt.access-secret}") String accessSecretKey
                             , @Value("${springboot.jwt.refresh-secret}") String refreshSecretKey
-                            , @Value("${springboot.jwt.token-type}") String tokenType) {
+                            , @Value("${springboot.jwt.token-type}") String tokenType
+                            , RedisService redisService) {
         byte[] accessKeyBytes = Decoders.BASE64.decode(accessSecretKey);
         this.ACCESS_KEY = Keys.hmacShaKeyFor(accessKeyBytes);
 
         byte[] refreshKeyBytes = Decoders.BASE64.decode(refreshSecretKey);
         this.REFRESH_KEY = Keys.hmacShaKeyFor(refreshKeyBytes);
         this.TOKEN_TYPE = tokenType;
+        this.redisService = redisService;
     }
 
 
@@ -73,14 +80,19 @@ public class JwtTokenProvider {
     }
 
     private UserDetails getUserDetailsFromToken(String token, Key key) {
-        Claims claims = getClaims(token, key);
-        String strIuser = claims.getSubject();
-        List<String> roles = (List<String>)claims.get("roles");
-        return MyUserDetails
-                .builder()
-                .iuser(Long.valueOf(strIuser))
-                .roles(roles)
-                .build();
+        try {
+            Claims claims = getClaims(token, key);
+            String strIuser = claims.getSubject();
+            List<String> roles = (List<String>) claims.get("roles");
+            return MyUserDetails
+                    .builder()
+                    .iuser(Long.valueOf(strIuser))
+                    .roles(roles)
+                    .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public String resolveToken(HttpServletRequest req, String type) {
@@ -93,10 +105,11 @@ public class JwtTokenProvider {
 //            }
 //        }
         String headerAuth = req.getHeader("authorization");
-        return headerAuth == null ? null : headerAuth.substring(type.length()).trim();
+        //return headerAuth == null  ? null : headerAuth.substring(type.length()).trim();
+        return headerAuth != null && headerAuth.startsWith(String.format("%s ", type)) ? headerAuth.substring(type.length()).trim() : null;
     }
 
-    public Claims getClaims(String token, Key key) {
+    public Claims getClaims(String token, Key key) throws Exception {
         return Jwts
                 .parserBuilder()
                 .setSigningKey(key)
@@ -105,6 +118,56 @@ public class JwtTokenProvider {
                 .getBody();
     }
 
+    public boolean validateRefreshToken(String refreshToken){
+        try {
+            if (redisService.getValues(refreshToken).equals("delete")) { // 회원 탈퇴했을 경우
+                return false;
+            }
+            getClaims(refreshToken, REFRESH_KEY);
+            return true;
+        }  catch (MalformedJwtException e) {
+            log.error("Invalid JWT token.");
+        } catch (ExpiredJwtException e) {
+            log.error("Expired JWT token.");
+        } catch (UnsupportedJwtException e) {
+            log.error("Unsupported JWT token.");
+        } catch (IllegalArgumentException e) {
+            log.error("JWT claims string is empty.");
+        } catch (NullPointerException e){
+            log.error("JWT Token is empty.");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+
+    public boolean validateAccessToken(String accessToken) {
+        try {
+            String r = redisService.getValues(accessToken);
+            if (r != null && r.equals("logout")) { // 로그아웃 했을 경우
+                return false;
+            }
+            getClaims(accessToken, ACCESS_KEY);
+            return true;
+        } catch(ExpiredJwtException e) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public long getTokenExpirationTime(String token, Key key) {
+        try {
+            return getClaims(token, key).getExpiration().getTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0L;
+    }
+
+
+    // Filter에서 사용
     public boolean isValidateToken(String token, Key key) {
         log.info("JwtTokenProvider - isValidateToken: 토큰 유효 체크 시작");
         try {

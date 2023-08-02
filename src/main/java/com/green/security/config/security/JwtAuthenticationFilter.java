@@ -8,8 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider PROVIDER;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
@@ -27,9 +30,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         log.info("JwtAuthenticationFilter - doFilterInternal: 토큰 유효성 체크 시작");
         if(token != null && PROVIDER.isValidateToken(token, PROVIDER.ACCESS_KEY)) {
-            Authentication auth = PROVIDER.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            log.info("JwtAuthenticationFilter - doFilterInternal: 토큰 유효성 체크 완료");
+
+            String isLogout = redisTemplate.opsForValue().get(token);
+            if(ObjectUtils.isEmpty(isLogout)) { //로그아웃이 없으면
+                Authentication auth = PROVIDER.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                log.info("JwtAuthenticationFilter - doFilterInternal: 토큰 유효성 체크 완료");
+            }
+
         }
         filterChain.doFilter(req, res);
     }

@@ -10,9 +10,10 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class TodoService {
-    private final AuthenticationFacade facade;
+    private final AuthenticationFacade FACADE;
 
     public void test() {
-        log.info("service-test-iuser : {}", facade.getLoginUserPk());
+        log.info("service-test-iuser : {}", FACADE.getLoginUserPk());
     }
+
 }
