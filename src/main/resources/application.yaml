@@ -6,6 +6,7 @@ springboot:
     refresh-secret: HelloWorldRefreshTokenCreateBySecretHaHaaasdfasdf
     header-scheme-name: authorization
     token-type: Bearer
+
 spring:
   servlet:
     multipart:

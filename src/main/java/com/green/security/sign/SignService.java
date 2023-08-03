@@ -23,6 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -113,7 +116,6 @@ public class SignService {
     }
 
     public void logout(HttpServletRequest req) {
-
         String accessToken = JWT_PROVIDER.resolveToken(req, JWT_PROVIDER.TOKEN_TYPE);
         Long iuser = FACADE.getLoginUserPk();
         String ip = req.getRemoteAddr();
@@ -124,11 +126,17 @@ public class SignService {
         if (refreshTokenInRedis != null) {
             REDIS_SERVICE.deleteValues(redisKey);
         }
-
         // Redis에 로그아웃 처리한 AT 저장
-        long expiration = JWT_PROVIDER.getTokenExpirationTime(accessToken, JWT_PROVIDER.ACCESS_KEY) - new Date().getTime();
+        //long expiration = JWT_PROVIDER.getTokenExpirationTime(accessToken, JWT_PROVIDER.ACCESS_KEY) - new Date().getTime();
+        long expiration = JWT_PROVIDER.getTokenExpirationTime(accessToken, JWT_PROVIDER.ACCESS_KEY)
+                - LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        log.info("date-getTime(): {}", new Date().getTime());
+        log.info("localDateTime-getTime(): {}", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+
         REDIS_SERVICE.setValuesWithTimeout(accessToken, "logout", expiration);  //남은시간 이후가 되면 삭제가 되도록 함.
+
     }
+
 
     public SignInResultDto refreshToken(HttpServletRequest req, String refreshToken) {
         if(!(JWT_PROVIDER.isValidateToken(refreshToken, JWT_PROVIDER.REFRESH_KEY))) {
@@ -166,9 +174,13 @@ public class SignService {
             String reAccessToken = JWT_PROVIDER.generateJwtToken(strIuser, roles, JWT_PROVIDER.ACCESS_TOKEN_VALID_MS, JWT_PROVIDER.ACCESS_KEY);
 
             //redis 업데이트
-            RedisJwtVo updateRedisJwtVo = RedisJwtVo.builder().accessToken(reAccessToken).refreshToken(redisJwtVo.getRefreshToken()).build();
+            RedisJwtVo updateRedisJwtVo = RedisJwtVo.builder()
+                                                    .accessToken(reAccessToken)
+                                                    .refreshToken(redisJwtVo.getRefreshToken())
+                                                    .build();
             String upateValue = OBJECT_MAPPER.writeValueAsString(updateRedisJwtVo);
             REDIS_SERVICE.setValues(redisKey, upateValue);
+
             return SignInResultDto.builder()
                     .accessToken(reAccessToken)
                     .refreshToken(refreshToken)

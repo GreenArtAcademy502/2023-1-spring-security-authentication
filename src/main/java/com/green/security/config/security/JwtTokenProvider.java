@@ -27,7 +27,7 @@ public class JwtTokenProvider {
     public final String TOKEN_TYPE;
 
     //public final long ACCESS_TOKEN_VALID_MS = 3_600_000L; // 1000L * 60 * 60 -> 1시간
-    public final long ACCESS_TOKEN_VALID_MS = 20_000L; // 1000L * 60 * 60 -> 1시간
+    public final long ACCESS_TOKEN_VALID_MS = 200_000L; // 1000L * 60 * 60 -> 200초
     public final long REFRESH_TOKEN_VALID_MS = 1_296_000_000L; // 1000L * 60 * 60 * 24 * 15 -> 15일
 
     private final RedisService redisService;
@@ -118,6 +118,7 @@ public class JwtTokenProvider {
                 .getBody();
     }
 
+    /*
     public boolean validateRefreshToken(String refreshToken){
         try {
             if (redisService.getValues(refreshToken).equals("delete")) { // 회원 탈퇴했을 경우
@@ -156,7 +157,7 @@ public class JwtTokenProvider {
             return false;
         }
     }
-
+*/
     public long getTokenExpirationTime(String token, Key key) {
         try {
             return getClaims(token, key).getExpiration().getTime();

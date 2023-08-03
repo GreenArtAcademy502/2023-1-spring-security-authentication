@@ -30,7 +30,8 @@ public class SignController {
     //RequestParam은 http 로부터 요청 온 정보를 받아오기 위한 스프링 어노테이션이다.
 
     @PostMapping("/sign-in")
-    public SignInResultDto signIn(HttpServletRequest req, @RequestParam String id, @RequestParam String password) throws Exception {
+    public SignInResultDto signIn(HttpServletRequest req, @RequestParam String id, @RequestParam String password)
+            throws Exception {
 
         String ip = req.getRemoteAddr();
         log.info("[signIn] 로그인을 시도하고 있습니다. id: {}, pw: {}, ip: {}", id, password, ip);

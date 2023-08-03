@@ -3,12 +3,11 @@ package com.green.security.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.concurrent.TimeUnit;
 
 @Service
-//@Transactional(readOnly = true) //트랜잭션 읽기 전용 (JPA 때 유용)
 @RequiredArgsConstructor
 public class RedisService {
     private final RedisTemplate<String, String> redisTemplate;

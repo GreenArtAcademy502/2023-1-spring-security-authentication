@@ -1,5 +1,6 @@
 package com.green.security.config.security;
 
+import com.green.security.config.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfiguration {
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisService redisService;
 
     //webSecurityCustomizer를 제외한 모든 것, 시큐리티를 거친다. 보안과 연관
     @Bean
@@ -53,7 +54,8 @@ public class SecurityConfiguration {
                     except.accessDeniedHandler(new CustomAccessDeniedHandler());
                     except.authenticationEntryPoint(new CustomAuthenticationEntryPoint());
                 })
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisService), UsernamePasswordAuthenticationFilter.class);
+
 
         return httpSecurity.build();
     }

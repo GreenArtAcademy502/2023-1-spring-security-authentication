@@ -1,5 +1,6 @@
 package com.green.security.config.security;
 
+import com.green.security.config.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +22,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider PROVIDER;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
@@ -31,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("JwtAuthenticationFilter - doFilterInternal: 토큰 유효성 체크 시작");
         if(token != null && PROVIDER.isValidateToken(token, PROVIDER.ACCESS_KEY)) {
 
-            String isLogout = redisTemplate.opsForValue().get(token);
+            String isLogout = redisService.getValues(token);
             if(ObjectUtils.isEmpty(isLogout)) { //로그아웃이 없으면
                 Authentication auth = PROVIDER.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(auth);
