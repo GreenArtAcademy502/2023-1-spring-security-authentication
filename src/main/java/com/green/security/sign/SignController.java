@@ -18,6 +18,8 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -28,6 +30,13 @@ public class SignController {
     private final TOTPTokenGenerator totp;
     //ApiParam은 문서 자동화를 위한 Swagger에서 쓰이는 어노테이션이고
     //RequestParam은 http 로부터 요청 온 정보를 받아오기 위한 스프링 어노테이션이다.
+
+    @GetMapping("/test")
+    public String test() {
+        log.info("date : {}", new Date());
+        return "ddd";
+    }
+
 
     @PostMapping("/sign-in")
     public SignInResultDto signIn(HttpServletRequest req, @RequestParam String id, @RequestParam String password)

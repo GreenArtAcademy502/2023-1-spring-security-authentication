@@ -35,6 +35,7 @@ public class SecurityConfiguration {
                                             , "/sign-api/sign-up"
                                             , "/sign-api/exception"
                                             , "/sign-api/otp"
+                                            , "/sign-api/test"
                                             , "/sign-api/otp-valid"
 
                                             , "/view/**"
