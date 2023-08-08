@@ -16,8 +16,8 @@ public class TodoController {
     private final TodoService SERVICE;
 
     @PostMapping
-    public int insTodo(@AuthenticationPrincipal MyUserDetails user
-            , @RequestParam String ctnt) {
+    public int insTodo(@AuthenticationPrincipal MyUserDetails user,
+             @RequestParam String ctnt) {
         log.info("TodoController - insTodo: ctnt {}", ctnt);
         log.info("controller-iuser {}", user.getIuser());
         SERVICE.test();

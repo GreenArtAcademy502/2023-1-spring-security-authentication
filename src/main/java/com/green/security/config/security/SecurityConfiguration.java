@@ -37,8 +37,9 @@ public class SecurityConfiguration {
                                             , "/sign-api/otp"
                                             , "/sign-api/test"
                                             , "/sign-api/otp-valid"
-
                                             , "/view/**"
+                                            , "/error"
+                                            , "/err"
                                     ).permitAll()
                                     .requestMatchers(HttpMethod.GET, "/sign-api/refresh-token").permitAll()
                                     .requestMatchers(HttpMethod.GET, "/product/**").permitAll()

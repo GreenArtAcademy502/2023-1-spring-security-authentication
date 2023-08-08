@@ -5,6 +5,7 @@ import com.green.security.config.security.model.MyUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ public class JwtTokenProvider {
         this.TOKEN_TYPE = tokenType;
         this.redisService = redisService;
     }
+
 
 
     public String generateJwtToken(String strIuser, List<String> roles, long token_valid_ms, Key key) {

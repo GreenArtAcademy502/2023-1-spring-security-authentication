@@ -1,6 +1,7 @@
 package com.green.security.sign;
 
 import com.green.security.CommonRes;
+import com.green.security.config.exception.CommonErrorCode;
 import com.green.security.config.security.otp.OtpRes;
 import com.green.security.config.security.otp.TOTP;
 import com.green.security.config.security.otp.TOTPTokenGenerator;
@@ -32,7 +33,10 @@ public class SignController {
     //RequestParam은 http 로부터 요청 온 정보를 받아오기 위한 스프링 어노테이션이다.
 
     @GetMapping("/test")
-    public String test() {
+    public String test(@RequestParam int test) {
+        if(test == 1) {
+            throw new IllegalArgumentException(CommonErrorCode.INVALID_PARAMETER.getMessage());
+        }
         log.info("date : {}", new Date());
         return "ddd";
     }
