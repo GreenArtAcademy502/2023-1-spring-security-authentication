@@ -32,14 +32,11 @@ class TodoControllerTest {
     @Autowired
     private MockMvc mvc;
 
-
     @MockBean
     private TodoService service;
 
     @MockBean
     private RedisService redisService;
-
-
 
     @BeforeEach
     void beforeEach() {
@@ -53,10 +50,10 @@ class TodoControllerTest {
     private UserDetails createUserDetails() {
         List<String> roles = new ArrayList<>();
         roles.add("ROLE_USER");
+        //roles.add("ROLE_ADMIN");
 
         UserDetails userDetails = MyUserDetails.builder()
                 .iuser(3L)
-                .name("홍길동")
                 .roles(roles)
                 .build();
         return userDetails;
