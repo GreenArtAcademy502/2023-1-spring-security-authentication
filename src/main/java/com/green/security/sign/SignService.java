@@ -85,26 +85,9 @@ public class SignService {
         String refreshToken = JWT_PROVIDER.generateJwtToken(String.valueOf(user.getIuser()), Collections.singletonList(user.getRole()), JWT_PROVIDER.REFRESH_TOKEN_VALID_MS, JWT_PROVIDER.REFRESH_KEY);
 
         // Redis에 RT 저장
-        RedisJwtVo redisJwtVo = RedisJwtVo.builder()
-                                            .accessToken(accessToken)
-                                            .refreshToken(refreshToken)
-                                            .build();
-        String value = OBJECT_MAPPER.writeValueAsString(redisJwtVo);
-        REDIS_SERVICE.setValues(redisKey, value);
+        REDIS_SERVICE.setValues(redisKey, refreshToken);
 
-        /*
-        UserTokenEntity tokenEntity = UserTokenEntity.builder()
-                .iuser(user.getIuser())
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .ip(ip)
-                .build();
 
-        int result = MAPPER.updUserToken(tokenEntity);
-
-        log.info("[getSignInResult] SignInResultDto 객체 생성");
-
-         */
         SignInResultDto dto = SignInResultDto.builder()
                                 .accessToken(accessToken)
                                 .refreshToken(refreshToken)
@@ -143,8 +126,6 @@ public class SignService {
             return null;
         }
 
-        String ip = req.getRemoteAddr();
-        String accessToken = JWT_PROVIDER.resolveToken(req, JWT_PROVIDER.TOKEN_TYPE);
         Claims claims = null;
         try {
             claims = JWT_PROVIDER.getClaims(refreshToken, JWT_PROVIDER.REFRESH_KEY);
@@ -157,29 +138,20 @@ public class SignService {
 
         String strIuser = claims.getSubject();
         Long iuser = Long.valueOf(strIuser);
+        String ip = req.getRemoteAddr();
 
         String redisKey = String.format("RT(%s):%s:%s", "Server", iuser, ip);
-        String value = REDIS_SERVICE.getValues(redisKey);
-        if (value == null) { // Redis에 저장되어 있는 RT가 없을 경우
+        String redisRt = REDIS_SERVICE.getValues(redisKey);
+        if (redisRt == null) { // Redis에 저장되어 있는 RT가 없을 경우
             return null; // -> 재로그인 요청
         }
         try {
-            RedisJwtVo redisJwtVo = OBJECT_MAPPER.readValue(value, RedisJwtVo.class);
-            if(!redisJwtVo.getAccessToken().equals(accessToken)
-                    || !redisJwtVo.getRefreshToken().equals(refreshToken)) {
+            if(!redisRt.equals(refreshToken)) {
                 return null;
             }
 
             List<String> roles = (List<String>)claims.get("roles");
             String reAccessToken = JWT_PROVIDER.generateJwtToken(strIuser, roles, JWT_PROVIDER.ACCESS_TOKEN_VALID_MS, JWT_PROVIDER.ACCESS_KEY);
-
-            //redis 업데이트
-            RedisJwtVo updateRedisJwtVo = RedisJwtVo.builder()
-                                                    .accessToken(reAccessToken)
-                                                    .refreshToken(redisJwtVo.getRefreshToken())
-                                                    .build();
-            String upateValue = OBJECT_MAPPER.writeValueAsString(updateRedisJwtVo);
-            REDIS_SERVICE.setValues(redisKey, upateValue);
 
             return SignInResultDto.builder()
                     .accessToken(reAccessToken)
@@ -189,29 +161,6 @@ public class SignService {
             e.printStackTrace();
         }
         return null;
-        /*
-        UserTokenEntity p = UserTokenEntity.builder()
-                .iuser(iuser)
-                .ip(ip)
-                .build();
-        UserTokenEntity selResult = MAPPER.selUserToken(p);
-        if(selResult == null || !(selResult.getAccessToken().equals(accessToken) && selResult.getRefreshToken().equals(refreshToken))) {
-            return null;
-        }
-        */
-
-
-        /*
-        UserTokenEntity tokenEntity = UserTokenEntity.builder()
-                .iuser(iuser)
-                .ip(ip)
-                .accessToken(reAccessToken)
-                .refreshToken(refreshToken)
-                .build();
-
-        int updResult = MAPPER.updUserToken(tokenEntity);
-*/
-
     }
 
     public int updSecretKey(Long iuser, String secretKey) {
