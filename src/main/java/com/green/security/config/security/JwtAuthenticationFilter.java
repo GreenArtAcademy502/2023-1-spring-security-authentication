@@ -38,8 +38,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 log.info("JwtAuthenticationFilter - doFilterInternal: 토큰 유효성 체크 완료");
             }
-
         }
         filterChain.doFilter(req, res);
+
     }
 }
